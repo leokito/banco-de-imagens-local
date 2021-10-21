@@ -1,8 +1,6 @@
-from genericpath import isfile
-import os
-from os.path import isfile, join
-from os import listdir
-from flask import json, request, jsonify
+import os, zipfile
+from flask import request, jsonify, send_file
+from flask.helpers import send_from_directory
 from werkzeug.utils import secure_filename
 from . import MAX_CONTENT_LENGTH, directory, extensions
 
@@ -12,25 +10,11 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in extensions
 
-# def list_files():
-    # files_list = []
-    # list = os.listdir(directory)
+def get_path(filename: str):
+    extension = filename.upper()[-3:]
+    path = f'../{directory}/{extension}/{filename}'
+    return path
 
-    # for files in list:
-    #     files_list.append(files)
-
-    #     return files_list
-
-# def list_files():   
-
-#     output = []
-    
-#     for dirpath, dirnames, filenames in os.walk("./uploaded"):
-#         if filenames == []:
-#             return 'Empty folder', 404
-#         output.append(filenames)
-
-#     return jsonify(output)
 def list_files():
     list = []
     for root, subdirectories, files in os.walk(directory):
@@ -46,7 +30,6 @@ def list_files_by_extension(format):
         list = os.listdir(path)
         if list == []:
             return "No files were found", 404
-
       
         return jsonify(list)
 
@@ -70,3 +53,20 @@ def upload_files():
     else:
         return 'file format not allowed', 415
 
+def download_specific_file(filename):
+    try:
+        path = get_path(filename)
+        return send_file(path, as_attachment=True), 200
+    except FileNotFoundError:
+        return "File doesn't exist.", 404
+
+def download_directory_as_zip(extension):
+    extension = extension.upper()
+    path= f'{directory}/{extension}'
+    if not os.listdir(path):
+        return 'Directory is empty', 404
+    else:
+        zip_file = f'zip -r /tmp/{extension}.zip {path}'
+        os.system(zip_file)
+
+        return send_from_directory(directory='/tmp', path=f'{extension}.zip', as_attachment=True)

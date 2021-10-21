@@ -1,5 +1,6 @@
 import os
 from flask import Flask
+from werkzeug.utils import send_from_directory
 from .kenzie import MAX_CONTENT_LENGTH, image
 
 app = Flask(__name__)
@@ -17,7 +18,11 @@ def list_files_by_format(type: str):
 def upload_files():
     return image.upload_files()
 
-# @app.post('/download_file')
-# def download_file(filename: str):
-#     path = image.get_path(filename)
-#     return send_file(path, as_attachment=True, )
+@app.get('/download/<filename>')
+def download_file(filename):
+    return image.download_specific_file(filename)
+
+@app.get('/download-zip/<extension>')
+def download_zip(extension):
+    return image.download_directory_as_zip(extension)
+    
