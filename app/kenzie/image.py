@@ -60,16 +60,19 @@ def download_specific_file(filename):
     except FileNotFoundError:
         return "File doesn't exist.", 404
 
-def download_directory_as_zip(extension):
+def download_directory_as_zip():
     try:
-        extension = extension.upper()
+        file_extension = request.args.get('file_extension')
+        rate_compression = request.args.get('compression_ratio')
+        extension = file_extension.upper()
         path= f'{directory}/{extension}'
         if not os.listdir(path):
             return 'Directory is empty', 404
         else:
-            zip_file = f'zip -r /tmp/{extension}.zip {path}'
+            zip_file = f'zip -{rate_compression} -r /tmp/{extension}.zip {path}'
             os.system(zip_file)
-
             return send_from_directory(directory='/tmp', path=f'{extension}.zip', as_attachment=True)
     except FileNotFoundError:
         return "Directory doesn't exists", 404
+    except AttributeError:
+        return 'Invalid url, review the address and try again', 404

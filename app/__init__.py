@@ -1,8 +1,6 @@
 import os
 from flask import Flask
 from werkzeug.utils import send_from_directory
-
-from app.kenzie import modules
 from .kenzie import MAX_CONTENT_LENGTH, image
 
 app = Flask(__name__)
